@@ -1,7 +1,7 @@
 import streamlit as st
 from poker_ai.core.game_state import GameState, Position
-from poker_ai.advisor.equity_based import EquityBasedAdvisor
-from poker_ai.utils.cards import format_card, card_color, RANKS, SUITS
+from poker_ai.advisor.range_based import RangeBasedAdvisor
+from poker_ai.utils.cards import format_card, RANKS, SUITS
 
 
 # ---------- Page Config ----------
@@ -17,30 +17,25 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-/* Import Playfair Display for headings, Inter for body */
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@500;700&family=Inter:wght@400;500&display=swap');
 
-/* ---- Page background: deep felt green ---- */
 .stApp {
     background:
         radial-gradient(ellipse at top, #134a3a 0%, #0d3b2e 45%, #082720 100%);
     background-attachment: fixed;
 }
 
-/* ---- Main content column ---- */
 .main .block-container {
     max-width: 780px;
     padding-top: 2.5rem;
     padding-bottom: 4rem;
 }
 
-/* ---- Base text color ---- */
 html, body, [class*="st-"], .stMarkdown, p, label {
     color: #f5ebd0 !important;
     font-family: 'Inter', sans-serif;
 }
 
-/* ---- Headings ---- */
 h1, h2, h3 {
     font-family: 'Playfair Display', serif !important;
     color: #f5ebd0 !important;
@@ -70,14 +65,12 @@ h3 {
     font-size: 1.25rem !important;
 }
 
-/* ---- Caption ---- */
 .stCaption, [data-testid="stCaptionContainer"] {
     color: #b8a88a !important;
     font-style: italic;
     font-size: 0.95rem !important;
 }
 
-/* ---- Buttons (generic) ---- */
 .stButton > button {
     background: rgba(245, 235, 208, 0.04);
     color: #f5ebd0 !important;
@@ -102,7 +95,6 @@ h3 {
     cursor: not-allowed;
 }
 
-/* ---- Primary button (Get Recommendation) ---- */
 .stButton > button[kind="primary"] {
     background: linear-gradient(180deg, #d4a574 0%, #b88a5a 100%);
     color: #0d3b2e !important;
@@ -122,7 +114,6 @@ h3 {
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
 }
 
-/* ---- Input widgets ---- */
 .stNumberInput input, .stSelectbox > div > div {
     background: rgba(0, 0, 0, 0.25) !important;
     color: #f5ebd0 !important;
@@ -130,7 +121,6 @@ h3 {
     font-family: 'JetBrains Mono', monospace !important;
 }
 
-/* ---- Metrics ---- */
 [data-testid="stMetricValue"] {
     font-family: 'Playfair Display', serif !important;
     font-size: 2.5rem !important;
@@ -145,24 +135,11 @@ h3 {
     font-size: 0.75rem !important;
 }
 
-/* ---- Divider ---- */
 hr {
     border-color: rgba(212, 165, 116, 0.25) !important;
     margin: 2rem 0 !important;
 }
 
-/* ---- Custom card-face classes (used in rendered HTML) ---- */
-.card-face {
-    display: inline-block;
-    font-family: 'JetBrains Mono', monospace;
-    font-weight: 700;
-    font-size: 1.4rem;
-    padding: 0.2rem 0.5rem;
-}
-.card-red { color: #e85a5a; }
-.card-black { color: #f5ebd0; }
-
-/* ---- Recommendation banner ---- */
 .reco-banner {
     text-align: center;
     padding: 2rem 1rem;
@@ -197,12 +174,12 @@ hr {
 st.markdown("<h1>Poker AI Advisor</h1>", unsafe_allow_html=True)
 st.markdown(
     "<p style='color: #b8a88a; font-style: italic; margin-top: -0.5rem;'>"
-    "Equity-based recommendations for No-Limit Hold'em</p>",
+    "Range-based recommendations for No-Limit Hold'em</p>",
     unsafe_allow_html=True,
 )
 
 
-# ---------- Session State Setup ----------
+# ---------- Session State ----------
 
 SLOT_NAMES = ["hole_1", "hole_2", "flop_1", "flop_2", "flop_3", "turn", "river"]
 
@@ -212,15 +189,13 @@ if "picker_open" not in st.session_state:
     st.session_state.picker_open = None
 
 
-# ---------- Helper Functions ----------
+# ---------- Helpers ----------
 
 def used_cards() -> set[str]:
     return {c for c in st.session_state.cards.values() if c is not None}
 
-
 def get_hole_cards() -> list[str]:
     return [c for c in (st.session_state.cards["hole_1"], st.session_state.cards["hole_2"]) if c]
-
 
 def get_board_cards() -> list[str]:
     board = []
@@ -231,10 +206,8 @@ def get_board_cards() -> list[str]:
         board.append(card)
     return board
 
-
 def open_picker(slot: str):
     st.session_state.picker_open = slot
-
 
 def assign_card(card: str):
     slot = st.session_state.picker_open
@@ -242,10 +215,8 @@ def assign_card(card: str):
         st.session_state.cards[slot] = card
         st.session_state.picker_open = None
 
-
 def clear_slot(slot: str):
     st.session_state.cards[slot] = None
-
 
 def reset_all_cards():
     for slot in SLOT_NAMES:
@@ -253,13 +224,7 @@ def reset_all_cards():
     st.session_state.picker_open = None
 
 
-def button_label_for_card(card: str) -> str:
-    """Return a card label for button text. Can't colorize inside Streamlit
-    button labels, but we use large unicode suits for visual weight."""
-    return format_card(card)
-
-
-# ---------- Rendering: Card Slot ----------
+# ---------- Card Slot Rendering ----------
 
 def render_slot(slot: str, placeholder: str):
     card = st.session_state.cards[slot]
@@ -268,12 +233,10 @@ def render_slot(slot: str, placeholder: str):
             open_picker(slot)
             st.rerun()
     else:
-        if st.button(button_label_for_card(card), key=f"slot_{slot}", use_container_width=True):
+        if st.button(format_card(card), key=f"slot_{slot}", use_container_width=True):
             clear_slot(slot)
             st.rerun()
 
-
-# ---------- Rendering: Card Picker ----------
 
 def render_card_picker():
     slot = st.session_state.picker_open
@@ -307,7 +270,7 @@ def render_card_picker():
     st.divider()
 
 
-# ---------- UI: Cards ----------
+# ---------- Cards UI ----------
 
 st.markdown("<h2>Hole Cards</h2>", unsafe_allow_html=True)
 
@@ -339,14 +302,14 @@ with col_reset:
         st.rerun()
 
 
-# ---------- UI: Game Context ----------
+# ---------- Game Context UI ----------
 
 st.markdown("<h2>Game Context</h2>", unsafe_allow_html=True)
 
 ctx_cols = st.columns(2)
 with ctx_cols[0]:
     position_str = st.selectbox(
-        "Position",
+        "Your position",
         options=["UTG", "MP", "CO", "BTN", "SB", "BB"],
         index=3,
     )
@@ -355,6 +318,25 @@ with ctx_cols[0]:
 with ctx_cols[1]:
     pot = st.number_input("Pot size (BB)", min_value=0.0, value=1.5, step=0.5)
     to_call = st.number_input("Amount to call (BB)", min_value=0.0, value=0.0, step=0.5)
+
+
+# ---------- Villain Modeling UI (NEW) ----------
+
+st.markdown("<h2>Opponent Profile</h2>", unsafe_allow_html=True)
+st.caption(
+    "When there's betting action, who is the aggressor? "
+    "This tells the advisor what range of hands to model them on."
+)
+
+villain_pos_str = st.selectbox(
+    "Villain's position",
+    options=["(none / not facing a bet)", "UTG", "MP", "CO", "BTN", "SB", "BB"],
+    index=0,
+    help=(
+        "UTG villains have tight ranges; BTN villains have loose ranges. "
+        "If preflop or no bet to face, leave as 'none'."
+    ),
+)
 
 
 # ---------- Compute & Display ----------
@@ -376,6 +358,11 @@ if st.button("Get Recommendation", type="primary", use_container_width=True):
         )
         st.stop()
     
+    # Parse villain position
+    villain_position: Position | None = None
+    if villain_pos_str != "(none / not facing a bet)":
+        villain_position = Position(villain_pos_str)
+    
     try:
         state = GameState(
             hole_cards=hole,
@@ -384,10 +371,11 @@ if st.button("Get Recommendation", type="primary", use_container_width=True):
             board=board,
             pot=pot,
             to_call=to_call,
+            villain_position=villain_position,
         )
         
-        with st.spinner("Calculating equity..."):
-            advisor = EquityBasedAdvisor(iterations=2000)
+        with st.spinner("Modeling villain's range and calculating equity..."):
+            advisor = RangeBasedAdvisor(iterations=2000)
             result = advisor.recommend(state)
         
         action = result["action"].lower()
