@@ -9,11 +9,15 @@ src/poker_ai/advisor/__init__.py
 src/poker_ai/advisor/base.py
 src/poker_ai/advisor/equity_based.py
 src/poker_ai/advisor/gto_approx.py
+src/poker_ai/advisor/range_based.py
+src/poker_ai/advisor/ranges.py
 src/poker_ai/advisor/rule_based.py
+src/poker_ai/advisor/sizing.py
 src/poker_ai/core/__init__.py
 src/poker_ai/core/card.py
 src/poker_ai/core/game_state.py
 src/poker_ai/core/hand.py
+src/poker_ai/core/hand_range.py
 src/poker_ai/engine/__init__.py
 src/poker_ai/engine/equity.py
 src/poker_ai/engine/evaluator.py
@@ -21,7 +25,11 @@ src/poker_ai/ui/__init__.py
 src/poker_ai/ui/cli.py
 src/poker_ai/ui/web.py
 src/poker_ai/utils/__init__.py
+src/poker_ai/utils/cards.py
 src/poker_ai/utils/formatting.py
 tests/test_advisor.py
 tests/test_card.py
+tests/test_equity.py
 tests/test_evaluator.py
+tests/test_hand_range.py
+tests/test_ranges.py

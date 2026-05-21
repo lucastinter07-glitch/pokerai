@@ -1,0 +1,52 @@
+.ctx-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.ctx-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ctx-field span {
+  font-size: 0.72rem;
+  color: #8aab94;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  font-family: Inter, sans-serif;
+}
+.ctx-field select,
+.ctx-field input {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(200,160,80,0.2);
+  border-radius: 8px;
+  color: #e8d5a3;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1rem;
+  padding: 10px 12px;
+  width: 100%;
+  outline: none;
+  -webkit-appearance: none;
+}
+.ctx-field select:focus,
+.ctx-field input:focus {
+  border-color: rgba(200,160,80,0.5);
+}
+.ctx-caption {
+  font-size: 0.8rem;
+  color: #5a7a64;
+  font-style: italic;
+  margin: 0 0 8px;
+}
+.villain-select {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(200,160,80,0.2);
+  border-radius: 8px;
+  color: #e8d5a3;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1rem;
+  padding: 10px 12px;
+  width: 100%;
+  outline: none;
+  -webkit-appearance: none;
+}
