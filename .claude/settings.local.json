@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(Select-Object -First 50)"
+      "Bash(Select-Object -First 50)",
+      "Bash(npx react-scripts *)",
+      "Bash(dir /s /b \"C:\\\\Users\\\\lucas\\\\OneDrive\\\\Documents\\\\Projects\\\\Active\\\\pokerai\\\\src\\\\*.py\")"
     ]
   }
 }
